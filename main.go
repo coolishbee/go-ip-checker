@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"sort"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/lxn/walk"
@@ -115,7 +116,9 @@ func (m *IPModel) AddRow(keybd keybd_event.KeyBonding) {
 	// 	panic(err)
 	// }
 	//fmt.Println(string(ip))
-	ip, err := exec.Command("curl", "https://api.ipify.org").Output()
+	cmd := exec.Command("curl", "https://api.ipify.org")
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	ip, err := cmd.Output()
 	if err != nil {
 		fmt.Println(err)
 		return
