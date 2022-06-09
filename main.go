@@ -21,8 +21,8 @@ type sMainWindow struct {
 }
 
 type IP struct {
-	// Index int
-	Addr string
+	Index int
+	Addr  string
 	// Baz   float64
 	// Quux    time.Time
 	checked bool
@@ -54,6 +54,8 @@ func (m *IPModel) Value(row, col int) interface{} {
 
 	switch col {
 	case 0:
+		return item.Index
+	case 1:
 		return item.Addr
 	}
 
@@ -89,6 +91,9 @@ func (m *IPModel) Sort(col int, order walk.SortOrder) error {
 
 		switch m.sortColumn {
 		case 0:
+			return c(b.Index < a.Index)
+
+		case 1:
 			return c(a.Addr < b.Addr)
 		}
 
@@ -98,15 +103,15 @@ func (m *IPModel) Sort(col int, order walk.SortOrder) error {
 	return m.SorterBase.Sort(col, order)
 }
 
-func (m *IPModel) ResetRows() {
-	// Create some random data.
-	m.items = make([]*IP, rand.Intn(100))
+// func (m *IPModel) ResetRows() {
+// 	// Create some random data.
+// 	m.items = make([]*IP, rand.Intn(100))
 
-	// Notify TableView and other interested parties about the reset.
-	m.PublishRowsReset()
+// 	// Notify TableView and other interested parties about the reset.
+// 	m.PublishRowsReset()
 
-	m.Sort(m.sortColumn, m.sortOrder)
-}
+// 	m.Sort(m.sortColumn, m.sortOrder)
+// }
 
 func (m *IPModel) AddRow(keybd keybd_event.KeyBonding) {
 	// ipAddr, err := ipify.GetIp()
@@ -135,10 +140,30 @@ func (m *IPModel) AddRow(keybd keybd_event.KeyBonding) {
 			return
 		}
 	}
+	//m.items = insert(m.items, 0, &IP{Addr: ipAddr})
+	//m.Append(&IP{Addr: ipAddr})
 
-	m.items = append(m.items, &IP{Addr: ipAddr})
+	m.items = append(m.items, &IP{
+		Index: m.RowCount(),
+		Addr:  ipAddr,
+	})
 	m.PublishRowsReset()
+	//fmt.Println(m.sortColumn)
+	m.Sort(m.sortColumn, m.sortOrder)
 }
+
+// func (m *IPModel) Append(element *IP) {
+// 	m.items = append(m.items, element)
+// 	copy(m.items[1:], m.items[0:])
+// 	m.items[0] = element
+// }
+
+// func insert(array []*IP, index int, element *IP) []*IP {
+// 	result := append(array, element)
+// 	copy(result[index+1:], result[index:])
+// 	result[index] = element
+// 	return result
+// }
 
 func (m *IPModel) ClearRows() {
 	for _, item := range m.items {
@@ -181,13 +206,13 @@ func main() {
 			TableView{
 				AssignTo:         &tv,
 				AlternatingRowBG: true,
-				CheckBoxes:       true,
+				CheckBoxes:       false,
 				ColumnsOrderable: true,
 				MultiSelection:   true,
 				Columns: []TableViewColumn{
+					{Title: "#", Width: 20},
 					{Title: "IP", Width: 118},
 				},
-
 				Model: model,
 				OnSelectedIndexesChanged: func() {
 					fmt.Printf("SelectedIndexes: %v\n", tv.SelectedIndexes())
