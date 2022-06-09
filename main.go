@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/rand"
-	"net/http"
+	"os/exec"
 	"sort"
 	"strings"
 	"time"
@@ -103,35 +102,25 @@ func (m *IPModel) Sort(col int, order walk.SortOrder) error {
 	return m.SorterBase.Sort(col, order)
 }
 
-// func (m *IPModel) ResetRows() {
-// 	// Create some random data.
-// 	m.items = make([]*IP, rand.Intn(100))
-
-// 	// Notify TableView and other interested parties about the reset.
-// 	m.PublishRowsReset()
-
-// 	m.Sort(m.sortColumn, m.sortOrder)
-// }
-
 func (m *IPModel) AddRow(keybd keybd_event.KeyBonding) {
-	// ipAddr, err := ipify.GetIp()
-	// if err != nil {
-	// 	fmt.Println("err : ", err)
-	// } else {
-	// 	fmt.Println("ip : ", ipAddr)
-	// }
 
-	url := "https://api64.ipify.org"
-	resp, err := http.Get(url)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-	ip, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
+	// url := "https://api64.ipify.org"
+	// resp, err := http.Get(url)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer resp.Body.Close()
+	// ip, err := ioutil.ReadAll(resp.Body)
+	// if err != nil {
+	// 	panic(err)
+	// }
 	//fmt.Println(string(ip))
+	ip, err := exec.Command("curl", "https://api.ipify.org").Output()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	ipAddr := string(ip)
 	for _, item := range m.items {
 		if strings.Contains(item.Addr, ipAddr) {
@@ -172,7 +161,7 @@ func (m *IPModel) ClearRows() {
 		}
 	}
 
-	m.items = m.items[:0]
+	m.items = nil //m.items[:0]
 	m.PublishRowsReset()
 }
 
